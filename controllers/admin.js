@@ -28,7 +28,6 @@ exports.postItem = (req, res, next) => {
 // sold item
 exports.soldItem = (req, res, next) =>{
   const id = req.body.id;
-  // const fine = req.body.fine;
   Items.findOne({ where: { id: id } }).then(item => {
     if(item.quantity-req.body.sold<=0)
       throw new Error('items unavailable')
