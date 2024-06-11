@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Library Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.8/axios.js"
+      integrity="sha512-pmaEGtUAy7E5gRmwjLqQAD/QWw0dL4Z59b6b+2HQkqQwQ+HcPLLb9/KbUNo5zr10WuXmbivK9nYVZOyDkMgZMg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+  </head>
+  <body class="w-full bg-sky-800 p-5">
+    <h1 class="text-white text-2xl font-bold">Books</h1>
+
+    <form class="my-8" id="bookform">
+      <input
+        id="bookname"
+        type="text"
+        class="p-3 text-xl font-semibold mr-1"
+        placeholder="Please enter Book name"
+        required
+      />
+      <button
+        class="bg-black py-3 px-8 text-xl font-semibold text-emerald-600"
+        type="submit"
+      >
+        Submit
+      </button>
+    </form>
+
+    <div>
+      <ul class="mt-8 flex gap-4 text-xl" id="books">
+        <!-- <li class="p-5 bg-neutral-700 text-white">
+          <ul>
+            <li>book name : mongodb by simon</li>
+            <li>book taken on : 123123123</li>
+            <li>book return date : 312312312</li>
+            <li>current fine : 0rs</li>
+            <li>
+              <button class="bg-green-700 text-white px-2 py-1 text-xl mt-2">
+                Return Book
+              </button>
+            </li>
+          </ul>
+        </li> -->
+      </ul>
+    </div>
+
+    <h1 class="text-white text-2xl font-bold mt-8">Returned Books</h1>
+
+    <div>
+      <ul class="mt-8 flex-col gap-4 text-xl" id="returnedbooks">
+        <!-- <li class="p-5 bg-neutral-700 text-white">
+          <ul>
+            <li>book name : mongodb</li>
+            <li>fine : 0rs</li>
+            <li>book returned on : 312312312</li>
+          </ul>
+        </li> -->
+
+      </ul>
+    </div>
+
+    <script>
+      const api = "http://localhost:3000";
+
+      let form = document.getElementById("bookform");
+      let books = document.getElementById("books");
+      let returnedbooks = document.getElementById("returnedbooks");
+
+      form.addEventListener("submit", addBook);
+      books.addEventListener("click", payFine);
+
+      window.addEventListener("DOMContentLoaded", () => {
+        axios
+          .get(`${api}/admin/books`)
+          .then((response) => {
+            // console.log(response.data);
+            for (let i = 0; i < response.data.length; i++) {
+              showOnScreen(response.data[i]);
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      });
+
+      function getFine(r) {
+        const date1 = new Date(r);
+        const date2 = new Date();
+        if (date1 > date2) return 0;
+        const differenceInMilliseconds = date2 - date1;
+        
+        const differenceInHours = Math.floor(
+          differenceInMilliseconds / (1000 * 60 * 60)
+        );
+        // const differenceInHours = differenceInMilliseconds / (1000 * 60 * 60);
+ 
+        return (differenceInHours * 10)+10;
+      }
+
+      function showOnScreen(book) {
+        let fine= getFine(book.bookreturn);
+        if (!book.returnstatus) {
+
+          var li = document.createElement("li");
+          li.className = "p-5 bg-neutral-700 text-white";
+
+          var lid1=document.createElement('div');
+          lid1.style.display = 'none';
+          let fineinput = document.createElement("input") 
+          fineinput.type='text';
+          fineinput.name = 'fineinput';
+          fineinput.value = `${fine} rs.`;
+          // fineinput.style.color='black';
+          fineinput.disabled=true;
+          fineinput.style.padding = '10px';
+          lid1.appendChild(fineinput);
+          lid1.appendChild(document.createElement("br"));
+
+          let cancelbtn = document.createElement('button');
+          cancelbtn.className =
+            "bg-slate-300 text-black px-2 py-1 text-xl mt-2 cancel";
+          cancelbtn.appendChild(document.createTextNode("Cancel"));
+          lid1.appendChild(cancelbtn);
+
+          let paybtn = document.createElement('button');
+          paybtn.className =
+            "bg-slate-100 text-black px-2 py-1 text-xl m-2 pay";
+          paybtn.appendChild(document.createTextNode("Pay fine"));
+          lid1.appendChild(paybtn);
+          
+          li.appendChild(lid1);
+
+          var lid = document.createElement("div");
+          lid.appendChild(
+            document.createTextNode("Book name: " + book.bookname)
+          );
+          // li.appendChild(document.createTextNode(book.bookname));
+          lid.appendChild(document.createElement("br"));
+          lid.appendChild(
+            document.createTextNode(
+              "Book taken on: " + new Date(book.bookissue).toLocaleString()
+            )
+          );
+          lid.appendChild(document.createElement("br"));
+          lid.appendChild(
+            document.createTextNode(
+              "Book return date: " + new Date(book.bookreturn).toLocaleString()
+            )
+          );
+          lid.appendChild(document.createElement("br"));
+          lid.appendChild(
+            document.createTextNode("Fine: " + fine + "rs")
+          );
+          lid.appendChild(document.createElement("br"));
+
+          var uid = document.createElement("div");
+          uid.style.display = "none";
+          uid.appendChild(document.createTextNode(book.id));
+          lid.appendChild(uid);
+
+          var returnbtn = document.createElement("button");
+          returnbtn.className =
+            "bg-green-700 text-white px-2 py-1 text-xl mt-2 return";
+          returnbtn.appendChild(document.createTextNode("Return Book"));
+          lid.appendChild(returnbtn);
+          li.appendChild(lid);
+          books.appendChild(li);
+        } else {
+          var li = document.createElement("li");
+          li.className = "p-5 bg-neutral-700 text-white";
+          li.appendChild(
+            document.createTextNode("Book name: " + book.bookname)
+          );
+          // li.appendChild(document.createTextNode(book.bookname));
+          li.appendChild(document.createElement("br"));
+
+          li.appendChild(
+            document.createTextNode(
+              "Returned on: " + new Date().toLocaleString()
+            )
+          );
+          li.appendChild(document.createElement("br"));
+          li.appendChild(
+            document.createTextNode("Fine: " + book.paidfine + "rs")
+          );
+          li.appendChild(document.createElement("br"));
+
+          var uid = document.createElement("div");
+          uid.style.display = "none";
+          uid.appendChild(document.createTextNode(book.id));
+          li.appendChild(uid);
+
+          returnedbooks.appendChild(li);
+        }
+      }
+
+      function addBook(e) {
+        e.preventDefault();
+        const datetime = new Date();
+        const returndate = new Date(datetime);
+        returndate.setHours(datetime.getHours() + 1);
+
+        let newbook = {
+          bookname: document.getElementById("bookname").value,
+          bookissue: datetime,
+          bookreturn: returndate,
+          returnstatus: false,
+        };
+        console.log(newbook);
+
+        axios
+          .post(`${api}/admin/add-book`, newbook)
+          .then((response) => {
+            showOnScreen(response.data);
+            document.getElementById("bookname").value='';
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+
+      function payFine(e) {
+        if (e.target.classList.contains("return")) {
+          var d= e.target.parentElement;
+          var li= d.parentElement;
+          d.style.display='none';
+          li.firstChild.style.display='block';
+        }
+        if(e.target.classList.contains('cancel')){
+          let d= e.target.parentElement;
+          let li= d.parentElement;
+          d.style.display='none';
+          li.childNodes[1].style.display='block';
+        }
+        if(e.target.classList.contains('pay')){
+          let li=e.target.parentElement.parentElement
+          let id= li.childNodes[1].childNodes[8].textContent;
+          let fine=li.childNodes[1].childNodes[6].textContent.replace(/\D/g, "");
+          let bookslist = li.parentElement;
+          // console.log('pay fine: ',li);
+
+          axios
+          .post(`${api}/admin/payfine`, {id:id,fine:fine})
+          .then((response) => {
+            
+            showOnScreen(response.data);
+            bookslist.removeChild(li)
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+        }
+      }
+    </script>
+  </body>
+</html>

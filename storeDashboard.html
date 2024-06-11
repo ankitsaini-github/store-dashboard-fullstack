@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.js" integrity="sha512-vHNHepeQWwAggJlhEk932jRS5sNdn/Nn4F+w4TpXW5dA+04qnd3e7YpfXo6auWhFG6z3FVhmScG4ovtF+qYeZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        html,body{
+            margin: 0px;
+            padding: 0px;
+            height: auto;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color:rgb(219, 219, 255);
+        }
+        footer{
+                margin-top: auto;
+            }
+        .myform{
+            font-size: 20px;
+            border: 1px solid lightgray;
+            border-radius: 5px;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar  navbar-expand" style="background-color: rgba(0, 68, 255, 0.25);">
+        <div class="container" id="navbrand">
+            <h1 class="navbar-brand ml-4">STORE DASHBOARD</h1>
+        </div>
+    </nav>
+    <div id="maindiv" class="container mb-3">
+        <div id="formdiv" class="myform my-5 shadow">
+            <form class="m-4" id="productform">
+                <label for="sellingPrice" class="form-label">Selling Price : </label><br>
+                <input type="number" class="form-control mr-2" id="sellingPrice" placeholder="Selling Price in Rupees" required><br>
+                <label for="productName" class="form-label">Product Name : </label><br>
+                <input type="text" class="form-control mr-2" id="productName" placeholder="Product Name" required><br>
+                <label for="productDesc" class="form-label">Product Description : </label><br>
+                <input type="text" class="form-control mr-2" id="productDesc" placeholder="Product Description" required><br>
+                <label for="productQty" class="form-label">Product Quantity : </label><br>
+                <input type="number" class="form-control mr-2" id="productQty" placeholder="Product Quantity" required><br>
+                <input type="text" id="uid" style="display: none;">
+                <div class="d-grid col-6 mx-auto">
+                <input type="submit" class="btn btn-primary" value="Submit">
+                </div> 
+            </form>
+        </div>
+        <div id="listdiv">
+            <h1 class="title mb-3">Product List :</h1>
+            <div class="card card-body" id="productList">
+                <ul id="products" class="list-group ">
+                </ul>
+            </div>
+        </div>
+    </div>
+    <footer class="bg-body-tertiary text-center">
+        <div class="text-center p-3" style="background-color: rgba(0, 68, 255, 0.1);">
+          Made By Ankit Saini (Node Test Project 1)
+        </div>
+      </footer>
+    <script>
+        const api="http://localhost:3000/admin";
+        var form=document.getElementById("productform");
+        var productlist=document.getElementById("products");
+
+        form.addEventListener('submit',addProduct);
+        productlist.addEventListener('click',buyProduct);
+
+        window.addEventListener('DOMContentLoaded',()=>{
+            axios.get(`${api}/items`)
+            .then((response)=>{
+                value=0
+                for(let i=0;i<response.data.length;i++){
+                displayProduct(response.data[i])
+                value+=Number(response.data[i].sellingPrice)
+                }
+
+            })
+            .catch(err=>{console.log(err)})
+        })
+
+        function displayProduct(product){
+            var li=document.createElement('li');
+            li.className='list-group-item';
+            li.appendChild(document.createTextNode('Name: '+product.name));
+            li.appendChild(document.createElement('br'));
+            li.appendChild(document.createTextNode('Description: '+product.description))
+            li.appendChild(document.createElement('br'));
+            li.appendChild(document.createTextNode('Price: '+product.price))
+            li.appendChild(document.createElement('br'));
+            li.appendChild(document.createTextNode('Qty: '+product.quantity))
+            
+            var uid=document.createElement('div')
+            uid.appendChild(document.createTextNode(product.id))
+            uid.setAttribute('id','uid');
+            uid.style.display='none'
+            li.appendChild(uid)
+
+            
+            var buy3=document.createElement('button');
+            buy3.className='btn btn-success mx-1 btn-md float-end buy3 ';
+            buy3.appendChild(document.createTextNode('Buy 3'));
+            li.appendChild(buy3);
+            
+            var buy2=document.createElement('button');
+            buy2.className='btn btn-success mx-1 btn-md float-end buy2 ';
+            buy2.appendChild(document.createTextNode('Buy 2'));
+            li.appendChild(buy2);
+            
+            var buy1=document.createElement('button');
+            buy1.className='btn btn-success mx-1 btn-md float-end buy1 ';
+            buy1.appendChild(document.createTextNode('Buy 1'));
+            li.appendChild(buy1);
+
+            productlist.appendChild(li);
+        }
+
+        function addProduct(e){
+            e.preventDefault(e);
+            var uid=document.getElementById('uid').value;
+            var newProduct={
+                name: document.getElementById('productName').value,
+                description: document.getElementById('productDesc').value,
+                price: document.getElementById('sellingPrice').value,
+                quantity: document.getElementById('productQty').value,
+            };
+
+            try{
+                axios.post(`${api}/add-item`,newProduct)
+                .then(response=>{
+                    displayProduct(response.data);
+                })
+            }
+            catch(err){
+                console.log(err);
+            }
+            
+        }
+
+        function decreaseQty(id,sold,li){
+            axios.post(`${api}/sold`,{id:id,sold:sold}).then((result)=>{
+                li.childNodes[6].textContent='Qty: '+result.data.quantity;
+            }).catch(err=>console.log(err));
+        }
+
+        function buyProduct(e){
+            var li=e.target.parentElement;
+            var id=li.childNodes[7].firstChild.textContent;
+            if(e.target.classList.contains('buy1')){
+                decreaseQty(id,1,li)
+            }
+            if(e.target.classList.contains('buy2')){
+                decreaseQty(id,2,li)
+            }
+            if(e.target.classList.contains('buy3')){
+                decreaseQty(id,3,li)
+            }
+        }
+
+    </script>
+
+</body>
+</html>
